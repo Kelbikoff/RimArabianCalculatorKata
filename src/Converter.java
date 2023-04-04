@@ -1,63 +1,78 @@
-import java.util.TreeMap;
+import java.util.Arrays;
+import java.util.List;
 
-public class Converter {
+class Converter {
 
-    TreeMap<Character, Integer> key = new TreeMap<>();
-    public Converter() {
-        key.put('I', 1);
-        key.put('V', 5);
-        key.put('X', 10); //
-        key.put('L', 50);
-        key.put('C', 100);
-    }
-    public int getArabian(char roman){
-        if('I' == roman) return 1;
-        else if('V' == roman) return 5;
-        else if('X' == roman) return 10;
-        else if('L' == roman) return 50;
-        else if('C' == roman) return 100;
+    private Converter(){}
 
-        return 0;
-    }
+    private static final List<String> ROMAN_NUMERALS = Arrays.asList("", "I", "II", "III", "IV", "V",
+            "VI", "VII", "VIII", "IX", "X");
 
-    public String intToRoman(int number) {
-
-        String[] romanThousands = {"", "M", "MM", "MMM"};
-        String[] romanHundreds = {"", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM"};
-        String[] romanTens = {"", "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC"};
-        String[] romanOnes = {"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"};
-
-        return romanThousands[number / 1000] +
-                romanHundreds[(number % 1000) / 100] +
-                romanTens[(number % 100) / 10] +
-                romanOnes[number % 10];
-
-    }
-
-    public int romanToInt(String s) {
-
-        int end = s.length()-1;
-        char[] arr = s.toCharArray();
-        int arabian;
-        int result = getArabian(arr[end]);
-        for (int i = end-1; i >=0; i--) {
-            arabian = getArabian(arr[i]);
-
-            if (arabian < getArabian(arr[i + 1])) {
-                result -= arabian;
-            } else {
-                result += arabian;
-            }
+    private static int fromRoman(String s) {
+        int n = ROMAN_NUMERALS.indexOf(s);
+        if (n == -1) {
+            throw new IllegalArgumentException("Неверное римское число");
         }
-        return result;
-
-    }
-    public boolean number (String number){
-
-        return key.containsKey(number.charAt(0));
+        return n;
     }
 
+    public static String intToRoman(int number) {
+        if (number < 1 || number > 3999) {
+            throw new IllegalArgumentException("Число должно быть от 1 до 3999 включительно");
+        }
+        StringBuilder sb = new StringBuilder();
+        int thousands = number / 1000;
+        sb.append("M".repeat(thousands));
+        number -= thousands * 1000;
 
+        int hundreds = number / 100;
+        sb.append(toRomanDigit(hundreds, "C", "D", "M"));
+        number -= hundreds * 100;
 
+        int tens = number / 10;
+        sb.append(toRomanDigit(tens, "X", "L", "C"));
+        number -= tens * 10;
+
+        sb.append(toRomanDigit(number, "I", "V", "X"));
+        return sb.toString();
+    }
+
+    private static String toRomanDigit(int n, String one, String five, String ten) {
+        if (n == 9) {
+            return one + ten;
+        } else if (n >= 5) {
+            return five + one.repeat(n - 5);
+        } else if (n == 4) {
+            return one + five;
+        } else {
+            return one.repeat(n);
+        }
+    }
+
+    static int parseNumber(String number) {
+        if (isRoman(number)) {
+            return fromRoman(number);
+        }
+
+        try {
+            int n = Integer.parseInt(number);
+            if (n < 1 || n > 10) {
+                throw new IllegalArgumentException("Число должно быть от 1 до 10 включительно");
+            }
+            return n;
+
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(number + " не является целым числом!", e);
+        }
+    }
+
+    public static boolean isSimilarTypes(String a, String b) {
+        boolean aIsRoman = isRoman(a);
+        boolean bIsRoman = isRoman(b);
+        return (!aIsRoman && !bIsRoman) || (aIsRoman && bIsRoman);
+    }
+
+    static boolean isRoman(String s) {
+        return s.matches("[IVX]+");
+    }
 }
-
